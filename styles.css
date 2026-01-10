@@ -375,6 +375,24 @@ body {
     transition: border-color 0.3s ease;
 }
 
+.modal-content textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-family: monospace;
+    resize: vertical;
+    min-height: 300px;
+    margin-bottom: 15px;
+    transition: border-color 0.3s ease;
+}
+
+.modal-content textarea:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
 .modal-content input:focus {
     outline: none;
     border-color: #667eea;
