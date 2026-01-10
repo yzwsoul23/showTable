@@ -14,7 +14,7 @@
                 <h1>表格列表</h1>
             </div>
             <div class="actions">
-                <button id="importBtn" class="btn btn-import">📥 导入CSV</button>
+                <button id="importBtn" class="btn btn-import">� 导入数据</button>
             </div>
             <div id="tableList" class="table-list"></div>
         </div>
@@ -31,12 +31,12 @@
                 <table id="dataTable">
                     <thead>
                         <tr>
-                            <th data-field="index" class="sortable text-right" style="width:5%">序</th>
-                            <th data-field="productName" class="text-left" style="width:70%">商品名称</th>
-                            <th data-field="barcode" class="text-center" style="width:8%">四位</th>
-                            <th data-field="quantity" class="text-right" style="width:5%">数量</th>
-                            <th data-field="price" class="text-center" style="width:7%">价格</th>
-                            <th data-field="actualQuantity" class="text-right" style="width:5%">实数</th>
+                            <th data-field="index" class="sortable text-right" style="width:6%">序</th>
+                            <th data-field="productName" class="text-left" style="width:65%">商品名称</th>
+                            <th data-field="barcode" class="text-center" style="width:9%">四位</th>
+                            <th data-field="quantity" class="text-right" style="width:6%">量</th>
+                            <th data-field="price" class="text-center" style="width:7%">箱</th>
+                            <th data-field="actualQuantity" class="text-right" style="width:6%">实</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
@@ -51,11 +51,9 @@
             </div>
         </div>
 
-        <!-- 隐藏的文件输入 -->
-        <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
     </div>
 
-    <!-- 长按编辑弹窗 -->
+    <!-- 编辑弹窗 -->
     <div id="editModal" class="modal hidden">
         <div class="modal-content">
             <h3>编辑实际数量</h3>
@@ -67,6 +65,24 @@
             <div class="modal-actions">
                 <button id="cancelEdit" class="btn btn-cancel">取消</button>
                 <button id="confirmEdit" class="btn btn-confirm">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导入弹窗 -->
+    <div id="importModal" class="modal hidden">
+        <div class="modal-content" style="max-width: 500px;">
+            <h3>导入数据</h3>
+            <textarea id="importText" placeholder="粘贴表格数据...
+格式：第一行表格名称，第二行表头，后续为数据
+示例：
+光彩路
+序号	商品名称	四位	量	箱
+2	津华谷色苦荞片葱香味400g	2725	10	1.0
+1	津华谷色苦荞片牛排味400g	0073	20	2.0" rows="12"></textarea>
+            <div class="modal-actions">
+                <button id="cancelImport" class="btn btn-cancel">取消</button>
+                <button id="confirmImport" class="btn btn-confirm">导入</button>
             </div>
         </div>
     </div>
