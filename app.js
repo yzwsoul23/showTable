@@ -87,12 +87,6 @@
     }
 
     function initEventListeners() {
-        document.getElementById('importBtn').addEventListener('click', () => {
-            document.getElementById('csvFileInput').click();
-        });
-
-        document.getElementById('csvFileInput').addEventListener('change', handleFileImport);
-
         document.getElementById('exportBtn').addEventListener('click', handleExport);
 
         document.getElementById('backBtn').addEventListener('click', showTableList);
@@ -104,65 +98,111 @@
         document.getElementById('editActualQuantity').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') confirmEdit();
         });
+
+        document.getElementById('importBtn').addEventListener('click', () => {
+            document.getElementById('importModal').classList.remove('hidden');
+            document.getElementById('importText').focus();
+        });
+
+        document.getElementById('cancelImport').addEventListener('click', () => {
+            document.getElementById('importModal').classList.add('hidden');
+            document.getElementById('importText').value = '';
+        });
+
+        document.getElementById('confirmImport').addEventListener('click', handleTextImport);
     }
 
-    async function handleFileImport(event) {
-        const file = event.target.files[0];
-        if (!file) return;
+    async function handleTextImport() {
+        const text = document.getElementById('importText').value.trim();
+        if (!text) {
+            showToast('请输入数据');
+            return;
+        }
 
         try {
-            const content = await readFileAsText(file);
-            const data = parseCSV(content);
-
-            if (!validateCSVData(data)) {
-                showToast('CSV格式不正确，请检查列名是否正确');
+            const result = parseTextData(text);
+            
+            if (!result.valid) {
+                showToast('数据格式不正确');
                 return;
             }
 
-            let table;
-            if (currentTableId) {
-                const tables = await getAllTables();
-                const existingTable = tables.find(t => t.id === currentTableId);
-                
-                if (existingTable) {
-                    existingTable.data = data;
-                    existingTable.name = file.name.replace('.csv', '');
-                    existingTable.updatedAt = new Date().toISOString();
-                    table = existingTable;
-                }
-            }
-
-            if (!table) {
-                table = {
-                    id: Date.now().toString(),
-                    name: file.name.replace('.csv', ''),
-                    data: data,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString()
-                };
-            }
+            const table = {
+                id: Date.now().toString(),
+                name: result.name,
+                data: result.data,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
 
             await saveTable(table);
-            currentTableId = table.id;
-            showTableDetail(table);
+            currentTableId = null;
 
+            document.getElementById('importModal').classList.add('hidden');
+            document.getElementById('importText').value = '';
+            await renderTableList();
             showToast('导入成功');
 
         } catch (error) {
             console.error('Import error:', error);
             showToast('导入失败: ' + error.message);
         }
-
-        event.target.value = '';
     }
 
-    function readFileAsText(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = (e) => resolve(e.target.result);
-            reader.onerror = (e) => reject(new Error('文件读取失败'));
-            reader.readAsText(file, 'UTF-8');
-        });
+    function parseTextData(text) {
+        const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l);
+        if (lines.length < 3) {
+            return { valid: false };
+        }
+
+        const tableName = lines[0];
+        const headerLine = lines[1];
+        const dataLines = lines.slice(2);
+
+        const headers = headerLine.split(/[\t,]+/).map(h => h.trim());
+        const normalizedHeaders = headers.map(h => normalizeFieldName(h));
+
+        const required = [...REQUIRED_FIELDS];
+
+        if (!required.every(field => normalizedHeaders.includes(field))) {
+            return { valid: false, headers: normalizedHeaders };
+        }
+
+        const data = {
+            headers: normalizedHeaders,
+            originalHeaders: headers,
+            rows: [],
+            hasActualQuantity: normalizedHeaders.includes('actualQuantity'),
+            hasDistributionStatus: normalizedHeaders.includes('distributionStatus')
+        };
+
+        for (let i = 0; i < dataLines.length; i++) {
+            const values = dataLines[i].split(/[\t,]+/).map(v => v.trim());
+            if (values.length === 0 || values.every(v => !v)) continue;
+
+            const row = { id: i + 1 };
+            
+            for (let j = 0; j < normalizedHeaders.length; j++) {
+                const header = normalizedHeaders[j];
+                let value = values[j] || '';
+                
+                if (header === 'quantity' || header === 'price' || header === 'actualQuantity') {
+                    value = parseFloat(value) || 0;
+                }
+                row[header] = value;
+            }
+
+            if (!row.actualQuantity && row.actualQuantity !== 0) {
+                row.actualQuantity = null;
+                row.status = STATUS.WHITE;
+            } else {
+                row.status = calculateStatus(row.actualQuantity, row.quantity);
+            }
+
+            data.rows.push(row);
+        }
+
+        return { valid: true, name: tableName, data };
     }
 
     function parseCSV(content) {
@@ -245,8 +285,11 @@
         const mapping = {
             '序号': 'index',
             '商品名称': 'productName',
+            '四位': 'barcode',
             '条码后四位': 'barcode',
+            '量': 'quantity',
             '数量': 'quantity',
+            '箱': 'price',
             '价格': 'price',
             '实际数量': 'actualQuantity',
             '配货情况': 'distributionStatus'
@@ -562,16 +605,15 @@
         }
 
         const rows = [...table.data.rows];
-        rows.sort((a, b) => sortRows(a, b));
 
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = rows.map(row => `
-            <tr class="table-row ${row.status}" data-id="${row.id}" data-quantity="${row.quantity}" data-product="${escapeHtml(row.productName)}" data-price="${row.price.toFixed(2)}">
+            <tr class="table-row ${row.status}" data-id="${row.id}" data-quantity="${row.quantity}" data-product="${escapeHtml(row.productName)}" data-price="${row.price.toFixed(1)}">
                 <td data-field="index" class="text-right">${row.index}</td>
                 <td data-field="productName" class="text-left">${escapeHtml(row.productName)}</td>
                 <td data-field="barcode" class="text-center">${row.barcode}</td>
                 <td data-field="quantity" class="text-right">${row.quantity}</td>
-                <td data-field="price" class="text-center">${row.price.toFixed(2)}</td>
+                <td data-field="price" class="text-center">${row.price.toFixed(1)}</td>
                 <td data-field="actualQuantity" class="text-right">${row.actualQuantity !== null ? row.actualQuantity : '-'}</td>
             </tr>
         `).join('');
@@ -938,7 +980,7 @@
                     value = value !== null ? value : '';
                 }
                 if (header === '价格' || header === 'price') {
-                    value = value !== undefined ? parseFloat(value).toFixed(2) : '0.00';
+                    value = value !== undefined ? parseFloat(value).toFixed(1) : '0.0';
                 }
                 return `"${value}"`;
             });
