@@ -665,6 +665,8 @@
         let touchStartX = 0;
         let touchCurrentX = 0;
         let activeRow = null;
+        let lastTouchTime = 0;
+        let lastTouchRowId = null;
 
         function handleRowMouseDown(e) {
             const row = e.target.closest('tr');
@@ -790,6 +792,24 @@
             const diffX = touchCurrentX - touchStartX;
             const rowId = parseInt(activeRow.dataset.id);
             const quantity = parseInt(activeRow.dataset.quantity);
+            const currentTime = new Date().getTime();
+
+            if (Math.abs(diffX) < 10 && currentTime - lastTouchTime < 300 && lastTouchRowId === rowId) {
+                activeRow.style.transform = 'translateX(0)';
+                activeRow.classList.remove('swipe-green');
+                activeRow.classList.remove('swipe-red');
+                
+                isSwiping = false;
+                activeRow = null;
+                
+                setTimeout(() => {
+                    openEditModal(rowId);
+                }, 50);
+                return;
+            }
+
+            lastTouchTime = currentTime;
+            lastTouchRowId = rowId;
 
             activeRow.style.transition = 'transform 0.3s, background-color 0.3s';
 
