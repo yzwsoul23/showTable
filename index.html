@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>多组表格查看器</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- 表格列表视图 -->
+        <div id="tableListView" class="view">
+            <div class="header">
+                <h1>表格列表</h1>
+            </div>
+            <div class="actions">
+                <button id="importBtn" class="btn btn-import">📥 导入CSV</button>
+            </div>
+            <div id="tableList" class="table-list"></div>
+        </div>
+
+        <!-- 表格详情视图 -->
+        <div id="tableDetailView" class="view hidden">
+            <div class="header">
+                <button id="backBtn" class="btn btn-back">←</button>
+                <span id="currentTableName" class="table-name"></span>
+                <button id="exportBtn" class="btn btn-export">导出</button>
+            </div>
+
+            <div class="table-container">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th data-field="index" class="sortable text-right" style="width:5%">序</th>
+                            <th data-field="productName" class="text-left" style="width:70%">商品名称</th>
+                            <th data-field="barcode" class="text-center" style="width:8%">四位</th>
+                            <th data-field="quantity" class="text-right" style="width:5%">数量</th>
+                            <th data-field="price" class="text-center" style="width:7%">价格</th>
+                            <th data-field="actualQuantity" class="text-right" style="width:5%">实数</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="legend">
+                <span class="legend-item"><span class="color-box green"></span> 有货</span>
+                <span class="legend-item"><span class="color-box red"></span> 无货</span>
+                <span class="legend-item"><span class="color-box yellow"></span> 少货</span>
+                <span class="legend-item"><span class="color-box white"></span> 未操作</span>
+            </div>
+        </div>
+
+        <!-- 隐藏的文件输入 -->
+        <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
+    </div>
+
+    <!-- 长按编辑弹窗 -->
+    <div id="editModal" class="modal hidden">
+        <div class="modal-content">
+            <h3>编辑实际数量</h3>
+            <div class="product-info">
+                <p id="editProductName"></p>
+                <p>应发数量: <span id="editQuantity"></span></p>
+            </div>
+            <input type="number" id="editActualQuantity" placeholder="输入实际数量" min="0">
+            <div class="modal-actions">
+                <button id="cancelEdit" class="btn btn-cancel">取消</button>
+                <button id="confirmEdit" class="btn btn-confirm">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
