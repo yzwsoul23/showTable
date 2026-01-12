@@ -2,12 +2,12 @@
     'use strict';
 
     const DB_NAME = 'TableViewerDB';
-    const DB_VERSION = 1;
+    const DB_VERSION = 2;
     const STORE_NAME = 'tables';
 
     let db = null;
     let currentTableId = null;
-    let sortField = 'index';
+    let sortField = null;
     let sortDirection = 'asc';
     let touchStartX = 0;
     let touchStartY = 0;
@@ -87,29 +87,73 @@
     }
 
     function initEventListeners() {
-        document.getElementById('exportBtn').addEventListener('click', handleExport);
+        const backBtn = document.getElementById('backBtn');
+        if (backBtn) {
+            backBtn.addEventListener('click', showTableList);
+        }
 
-        document.getElementById('backBtn').addEventListener('click', showTableList);
+        const cancelEdit = document.getElementById('cancelEdit');
+        if (cancelEdit) {
+            cancelEdit.addEventListener('click', closeEditModal);
+        }
 
-        document.getElementById('cancelEdit').addEventListener('click', closeEditModal);
+        const confirmEditBtn = document.getElementById('confirmEdit');
+        if (confirmEditBtn) {
+            confirmEditBtn.addEventListener('click', confirmEdit);
+        }
 
-        document.getElementById('confirmEdit').addEventListener('click', confirmEdit);
+        const editActualQuantity = document.getElementById('editActualQuantity');
+        if (editActualQuantity) {
+            editActualQuantity.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') confirmEdit();
+            });
+        }
 
-        document.getElementById('editActualQuantity').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') confirmEdit();
+        const toggleViewBtn = document.getElementById('toggleViewBtn');
+        if (toggleViewBtn) {
+            toggleViewBtn.addEventListener('click', toggleTableView);
+        }
+
+        const importBtn = document.getElementById('importBtn');
+        if (importBtn) {
+            importBtn.addEventListener('click', () => {
+                document.getElementById('importModal').classList.remove('hidden');
+                document.getElementById('importText').focus();
+            });
+        }
+
+        const cancelImport = document.getElementById('cancelImport');
+        if (cancelImport) {
+            cancelImport.addEventListener('click', () => {
+                document.getElementById('importModal').classList.add('hidden');
+                document.getElementById('importText').value = '';
+            });
+        }
+
+        const confirmImport = document.getElementById('confirmImport');
+        if (confirmImport) {
+            confirmImport.addEventListener('click', handleTextImport);
+        }
+    }
+
+    let isDateViewMode = false;
+
+    function toggleTableView() {
+        isDateViewMode = !isDateViewMode;
+        
+        const toggleFields = document.querySelectorAll('.toggle-field');
+        const dateFields = document.querySelectorAll('.date-field');
+        
+        toggleFields.forEach(field => {
+            field.style.display = isDateViewMode ? 'none' : '';
         });
-
-        document.getElementById('importBtn').addEventListener('click', () => {
-            document.getElementById('importModal').classList.remove('hidden');
-            document.getElementById('importText').focus();
+        
+        dateFields.forEach(field => {
+            field.style.display = isDateViewMode ? '' : 'none';
         });
-
-        document.getElementById('cancelImport').addEventListener('click', () => {
-            document.getElementById('importModal').classList.add('hidden');
-            document.getElementById('importText').value = '';
-        });
-
-        document.getElementById('confirmImport').addEventListener('click', handleTextImport);
+        
+        const btn = document.getElementById('toggleViewBtn');
+        btn.textContent = isDateViewMode ? '返回' : '切换';
     }
 
     async function handleTextImport() {
@@ -292,6 +336,8 @@
             '箱': 'price',
             '价格': 'price',
             '实际数量': 'actualQuantity',
+            '生产日期': 'productionDate',
+            '日期': 'productionDate',
             '配货情况': 'distributionStatus'
         };
 
@@ -343,6 +389,24 @@
         document.getElementById('tableListView').classList.add('hidden');
         document.getElementById('tableDetailView').classList.remove('hidden');
         document.getElementById('currentTableName').textContent = table.name;
+
+        sortField = null;
+        sortDirection = 'asc';
+        
+        isDateViewMode = false;
+        const btn = document.getElementById('toggleViewBtn');
+        if (btn) {
+            btn.textContent = '切换';
+        }
+        
+        const toggleFields = document.querySelectorAll('.toggle-field');
+        const dateFields = document.querySelectorAll('.date-field');
+        if (toggleFields.length) {
+            toggleFields.forEach(field => field.style.display = '');
+        }
+        if (dateFields.length) {
+            dateFields.forEach(field => field.style.display = 'none');
+        }
 
         renderTable(table);
     }
@@ -608,18 +672,29 @@
 
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = rows.map(row => `
-            <tr class="table-row ${row.status}" data-id="${row.id}" data-quantity="${row.quantity}" data-product="${escapeHtml(row.productName)}" data-price="${row.price.toFixed(1)}">
+            <tr class="table-row ${row.status}" data-id="${row.id}" data-quantity="${row.quantity}" data-product="${escapeHtml(row.productName)}" data-price="${row.price.toFixed(1)}" data-date="${row.productionDate || ''}">
                 <td data-field="index" class="text-right">${row.index}</td>
                 <td data-field="productName" class="text-left">${escapeHtml(row.productName)}</td>
-                <td data-field="barcode" class="text-center">${row.barcode}</td>
+                <td data-field="barcode" class="text-center toggle-field">${row.barcode}</td>
                 <td data-field="quantity" class="text-right">${row.quantity}</td>
-                <td data-field="price" class="text-center">${row.price.toFixed(1)}</td>
-                <td data-field="actualQuantity" class="text-right">${row.actualQuantity !== null ? row.actualQuantity : '-'}</td>
+                <td data-field="price" class="text-center toggle-field">${row.price.toFixed(1)}</td>
+                <td data-field="actualQuantity" class="text-right toggle-field">${row.actualQuantity !== null ? row.actualQuantity : '-'}</td>
+                <td data-field="productionDate" class="text-center date-field" style="display:none;">${formatDate(row.productionDate)}</td>
             </tr>
         `).join('');
 
         setupTableInteractions(table);
         setupSortableHeaders();
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '-';
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return dateStr;
+        const year = date.getFullYear().toString().slice(-2);
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 
     function sortRows(a, b) {
@@ -713,10 +788,10 @@
             if (Math.abs(diffX) > 40) {
                 if (diffX < -40) {
                     activeRow.style.transform = 'translateX(0)';
-                    await setActualQuantity(rowId, quantity, STATUS.GREEN);
+                    await setRowData(rowId, quantity, null);
                 } else if (diffX > 40) {
                     activeRow.style.transform = 'translateX(0)';
-                    await setActualQuantity(rowId, 0, STATUS.RED);
+                    await setRowData(rowId, 0, null);
                 }
             } else {
                 activeRow.style.transform = 'translateX(0)';
@@ -816,10 +891,10 @@
             if (Math.abs(diffX) > 40) {
                 if (diffX < -40) {
                     activeRow.style.transform = 'translateX(0)';
-                    await setActualQuantity(rowId, quantity, STATUS.GREEN);
+                    await setRowData(rowId, quantity, null);
                 } else if (diffX > 40) {
                     activeRow.style.transform = 'translateX(0)';
-                    await setActualQuantity(rowId, 0, STATUS.RED);
+                    await setRowData(rowId, 0, null);
                 }
             } else {
                 activeRow.style.transform = 'translateX(0)';
@@ -890,6 +965,7 @@
         document.getElementById('editProductName').textContent = row.productName;
         document.getElementById('editQuantity').textContent = row.quantity;
         document.getElementById('editActualQuantity').value = row.actualQuantity !== null ? row.actualQuantity : '';
+        document.getElementById('editProductionDate').value = row.productionDate || '';
         document.getElementById('editActualQuantity').focus();
 
         document.getElementById('editModal').classList.remove('hidden');
@@ -915,11 +991,14 @@
             }
         }
 
-        await setActualQuantity(editingRowData.id, actualQuantity, null);
+        const dateInput = document.getElementById('editProductionDate');
+        const productionDate = dateInput.value.trim();
+
+        await setRowData(editingRowData.id, actualQuantity, productionDate);
         closeEditModal();
     }
 
-    async function setActualQuantity(rowId, actualQuantity, status) {
+    async function setRowData(rowId, actualQuantity, productionDate) {
         const tables = await getAllTables();
         const table = tables.find(t => t.id === currentTableId);
         if (!table) return;
@@ -930,17 +1009,12 @@
         if (actualQuantity !== null) {
             row.actualQuantity = actualQuantity;
         }
-
-        if (status) {
-            row.status = status;
-            if (status === STATUS.GREEN) {
-                row.actualQuantity = row.quantity;
-            } else if (status === STATUS.RED) {
-                row.actualQuantity = 0;
-            }
-        } else {
-            row.status = calculateStatus(row.actualQuantity, row.quantity);
+        
+        if (productionDate !== undefined) {
+            row.productionDate = productionDate;
         }
+
+        row.status = calculateStatus(row.actualQuantity, row.quantity);
 
         table.updatedAt = new Date().toISOString();
         await saveTable(table);
@@ -950,30 +1024,6 @@
         if (checkTableCompleted(table)) {
             showToast('当前表格已完成');
         }
-    }
-
-    async function handleExport() {
-        const tables = await getAllTables();
-        const table = tables.find(t => t.id === currentTableId);
-        if (!table) {
-            showToast('没有可导出的数据');
-            return;
-        }
-
-        const csv = generateCSV(table);
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-
-        link.setAttribute('href', url);
-        link.setAttribute('download', `${table.name}.csv`);
-        link.style.visibility = 'hidden';
-
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        showToast('导出成功');
     }
 
     function generateCSV(table) {
@@ -1014,8 +1064,39 @@
         const tables = await getAllTables();
         const table = tables.find(t => t.id === currentTableId);
         if (table) {
-            renderTable(table);
+            renderTableWithSort(table);
         }
+    }
+
+    function renderTableWithSort(table) {
+        if (!table.data || !table.data.rows) {
+            document.getElementById('tableBody').innerHTML = `
+                <tr><td colspan="6" style="text-align: center; padding: 40px; color: #999;">暂无数据</td></tr>
+            `;
+            return;
+        }
+
+        const rows = [...table.data.rows];
+
+        if (sortField) {
+            rows.sort((a, b) => sortRows(a, b));
+        }
+
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = rows.map(row => `
+            <tr class="table-row ${row.status}" data-id="${row.id}" data-quantity="${row.quantity}" data-product="${escapeHtml(row.productName)}" data-price="${row.price.toFixed(1)}" data-date="${row.productionDate || ''}">
+                <td data-field="index" class="text-right">${row.index}</td>
+                <td data-field="productName" class="text-left">${escapeHtml(row.productName)}</td>
+                <td data-field="barcode" class="text-center toggle-field">${row.barcode}</td>
+                <td data-field="quantity" class="text-right">${row.quantity}</td>
+                <td data-field="price" class="text-center toggle-field">${row.price.toFixed(1)}</td>
+                <td data-field="actualQuantity" class="text-right toggle-field">${row.actualQuantity !== null ? row.actualQuantity : '-'}</td>
+                <td data-field="productionDate" class="text-center date-field" style="display:none;">${formatDate(row.productionDate)}</td>
+            </tr>
+        `).join('');
+
+        setupTableInteractions(table);
+        setupSortableHeaders();
     }
 
     function escapeHtml(text) {
