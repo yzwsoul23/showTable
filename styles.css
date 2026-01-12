@@ -29,25 +29,21 @@ body {
 .view {
     background: #f8f9fa;
     min-height: 100vh;
-    padding: 15px;
+    padding: 0 15px;
 }
 
 .header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 15px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-    margin-bottom: 15px;
+    padding: 25px;
+    background: #f8f9fa;
     position: sticky;
-    top: 10px;
+    top: 0;
     z-index: 100;
 }
 
 .header h1 {
-    font-size: 1.4rem;
     color: #333;
     flex: 1;
     text-align: center;
@@ -124,6 +120,7 @@ body {
 
 .actions {
     display: flex;
+    box-shadow: var(--shadow);
     gap: 10px;
     margin-bottom: 15px;
 }
