@@ -261,6 +261,10 @@ body {
     color: #ff9800;
 }
 
+#dataTable td[data-field="quantity"] {
+    font-weight: 600;
+}
+
 #dataTable td[data-field="actualQuantity"] {
     font-weight: 600;
 }
