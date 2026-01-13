@@ -788,10 +788,10 @@
             if (Math.abs(diffX) > 40) {
                 if (diffX < -40) {
                     activeRow.style.transform = 'translateX(0)';
-                    await setRowData(rowId, quantity, null);
+                    await setRowData(rowId, quantity, undefined, true);
                 } else if (diffX > 40) {
                     activeRow.style.transform = 'translateX(0)';
-                    await setRowData(rowId, 0, null);
+                    await setRowData(rowId, 0, undefined, true);
                 }
             } else {
                 activeRow.style.transform = 'translateX(0)';
@@ -891,10 +891,10 @@
             if (Math.abs(diffX) > 40) {
                 if (diffX < -40) {
                     activeRow.style.transform = 'translateX(0)';
-                    await setRowData(rowId, quantity, null);
+                    await setRowData(rowId, quantity, undefined, true);
                 } else if (diffX > 40) {
                     activeRow.style.transform = 'translateX(0)';
-                    await setRowData(rowId, 0, null);
+                    await setRowData(rowId, 0, undefined, true);
                 }
             } else {
                 activeRow.style.transform = 'translateX(0)';
@@ -994,11 +994,11 @@
         const dateInput = document.getElementById('editProductionDate');
         const productionDate = dateInput.value.trim();
 
-        await setRowData(editingRowData.id, actualQuantity, productionDate);
+        await setRowData(editingRowData.id, actualQuantity, productionDate, true);
         closeEditModal();
     }
 
-    async function setRowData(rowId, actualQuantity, productionDate) {
+    async function setRowData(rowId, actualQuantity, productionDate, shouldSwitchView = false) {
         const tables = await getAllTables();
         const table = tables.find(t => t.id === currentTableId);
         if (!table) return;
@@ -1010,7 +1010,7 @@
             row.actualQuantity = actualQuantity;
         }
         
-        if (productionDate !== undefined) {
+        if (productionDate !== undefined && productionDate !== null && productionDate !== '') {
             row.productionDate = productionDate;
         }
 
@@ -1018,6 +1018,23 @@
 
         table.updatedAt = new Date().toISOString();
         await saveTable(table);
+
+        if (shouldSwitchView && isDateViewMode) {
+            isDateViewMode = false;
+            const btn = document.getElementById('toggleViewBtn');
+            if (btn) {
+                btn.textContent = '切换';
+            }
+            
+            const toggleFields = document.querySelectorAll('.toggle-field');
+            const dateFields = document.querySelectorAll('.date-field');
+            if (toggleFields.length) {
+                toggleFields.forEach(field => field.style.display = '');
+            }
+            if (dateFields.length) {
+                dateFields.forEach(field => field.style.display = 'none');
+            }
+        }
 
         renderTable(table);
 
