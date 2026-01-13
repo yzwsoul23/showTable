@@ -2,48 +2,94 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>快递柜取件码管理系统</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>多组表格查看器</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>快递柜取件码</h1>
-            <button class="settings-btn" onclick="openSettings()">⚙️ 设置</button>
-        </header>
+    <div id="app">
+        <!-- 表格列表视图 -->
+         <div class="header">
+                <h1 style="font-size: 1.4rem;">表格列表</h1>
+        </div>
+        <div id="tableListView" class="view">
+            
+            <div class="actions">
+                <button id="importBtn" class="btn btn-import">📥导入数据</button>
+            </div>
+            <div id="tableList" class="table-list"></div>
+        </div>
 
-        <div class="import-section">
-            <h2>数据导入</h2>
-            <textarea id="importData" placeholder="请粘贴快递信息"></textarea>
-            <div class="import-buttons">
-                <button onclick="importData()">导入数据</button>
-                <button onclick="clearAllData()">清空数据</button>
+        <!-- 表格详情视图 -->
+        <div id="tableDetailView" class="view hidden">
+            <div class="header">
+                <button id="backBtn" class="btn btn-back">←</button>
+                <span id="currentTableName" class="table-name"></span>
+                <button id="toggleViewBtn" class="btn btn-toggle">切换</button>
+            </div>
+
+            <div class="table-container">
+                <table id="dataTable">
+                    <thead>
+                        <tr id="tableHeaderRow">
+                            <th data-field="index" class="sortable text-right" style="width:6%">序</th>
+                            <th data-field="productName" class="text-left" style="width:65%">商品名称</th>
+                            <th data-field="barcode" class="text-center toggle-field" style="width:9%">四位</th>
+                            <th data-field="quantity" class="text-right" style="width:6%">量</th>
+                            <th data-field="price" class="text-center toggle-field" style="width:7%">箱</th>
+                            <th data-field="actualQuantity" class="text-right toggle-field" style="width:6%">实</th>
+                            <th data-field="productionDate" class="text-center date-field" style="width:22%; display:none;">日期</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="legend">
+                <span class="legend-item"><span class="color-box green"></span> 有货</span>
+                <span class="legend-item"><span class="color-box red"></span> 无货</span>
+                <span class="legend-item"><span class="color-box yellow"></span> 少货</span>
+                <span class="legend-item"><span class="color-box white"></span> 未操作</span>
             </div>
         </div>
 
-        <div class="display-section">
-            <div id="lockerGroups"></div>
-        </div>
     </div>
 
-    <div class="modal" id="settingsModal">
+    <!-- 编辑弹窗 -->
+    <div id="editModal" class="modal hidden">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2>快递柜设置</h2>
-                <button class="close-btn" onclick="closeSettings()">✕</button>
+            <h3>编辑数据</h3>
+            <div class="product-info">
+                <p id="editProductName"></p>
+                <p>应发数量: <span id="editQuantity"></span></p>
             </div>
-            <div class="settings-content">
-                <div class="settings-form">
-                    <input type="text" id="lockerName" placeholder="快递柜名称（如：丰巢）">
-                    <input type="number" id="freeHours" placeholder="免费时长（小时）" min="1">
-                    <button onclick="addLockerSetting()">添加设置</button>
-                </div>
-                <div class="settings-list" id="settingsList"></div>
+            <input type="number" id="editActualQuantity" placeholder="输入实际数量" min="0">
+            <input type="date" id="editProductionDate" placeholder="选择生产日期">
+            <div class="modal-actions">
+                <button id="cancelEdit" class="btn btn-cancel">取消</button>
+                <button id="confirmEdit" class="btn btn-confirm">确认</button>
             </div>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- 导入弹窗 -->
+    <div id="importModal" class="modal hidden">
+        <div class="modal-content" style="max-width: 500px;">
+            <h3>导入数据</h3>
+            <textarea id="importText" placeholder="粘贴表格数据...
+格式：第一行表格名称，第二行表头，后续为数据
+示例：
+光彩路
+序号	商品名称	四位	量	箱
+2	津华谷色苦荞片葱香味400g	2725	10	1.0
+1	津华谷色苦荞片牛排味400g	0073	20	2.0" rows="12"></textarea>
+            <div class="modal-actions">
+                <button id="cancelImport" class="btn btn-cancel">取消</button>
+                <button id="confirmImport" class="btn btn-confirm">导入</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
 </body>
 </html>
