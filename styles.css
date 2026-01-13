@@ -441,7 +441,6 @@ body {
     cursor: pointer;
     position: relative;
     min-height: 70px;
-    touch-action: pan-y;
 }
 
 .table-item:hover {
@@ -497,6 +496,26 @@ body {
 .table-item-status.pending {
     background: var(--yellow);
     border-color: var(--yellow);
+}
+
+.table-item-delete {
+    background: transparent;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 8px;
+    margin-left: 10px;
+    transition: transform 0.2s, opacity 0.2s;
+    opacity: 0.6;
+}
+
+.table-item-delete:hover {
+    transform: scale(1.1);
+    opacity: 1;
+}
+
+.table-item-delete:active {
+    transform: scale(0.95);
 }
 
 .swipe-hint {

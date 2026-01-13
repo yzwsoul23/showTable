@@ -438,8 +438,7 @@
                             <div class="table-item-name">${escapeHtml(table.name)}</div>
                             <div class="table-item-date">${date}</div>
                         </div>
-                        <div class="table-item-status ${isCompleted ? 'completed' : 'pending'}" 
-                             title="${isCompleted ? '已完成' : '未完成'}"></div>
+                        <button class="table-item-delete" title="删除">❌</button>
                     </div>
                 </div>
             `;
@@ -451,182 +450,8 @@
     function setupTableListInteractions() {
         const container = document.getElementById('tableList');
 
-        let touchStartX = 0;
-        let touchCurrentX = 0;
-        let isSwiping = false;
-        let activeItem = null;
-
-        function handleListMouseDown(e) {
-            const item = e.target.closest('.table-item');
-            if (!item) return;
-
-            touchStartX = e.clientX;
-            touchCurrentX = e.clientX;
-            isSwiping = true;
-            activeItem = item;
-            item.classList.add('swiping');
-        }
-
-        function handleListMouseMove(e) {
-            if (!isSwiping || !activeItem) return;
-
-            touchCurrentX = e.clientX;
-            const diffX = touchCurrentX - touchStartX;
-
-            if (Math.abs(diffX) < 80) {
-                activeItem.style.transform = `translateX(${diffX}px)`;
-
-                if (diffX > 30) {
-                    activeItem.classList.add('swipe-delete');
-                    activeItem.classList.remove('swipe-open');
-                } else if (diffX < -30) {
-                    activeItem.classList.add('swipe-open');
-                    activeItem.classList.remove('swipe-delete');
-                } else {
-                    activeItem.classList.remove('swipe-delete');
-                    activeItem.classList.remove('swipe-open');
-                }
-            }
-        }
-
-        function handleListMouseUp(e) {
-            if (!isSwiping || !activeItem) return;
-
-            const diffX = touchCurrentX - touchStartX;
-            const wrapper = activeItem.closest('.table-item-wrapper');
-            const tableId = wrapper.dataset.id;
-
-            activeItem.style.transition = 'transform 0.3s, background-color 0.3s';
-
-            if (Math.abs(diffX) > 50) {
-                if (diffX > 50) {
-                    activeItem.style.transform = 'translateX(0)';
-                    handleDelete(tableId);
-                } else if (diffX < -50) {
-                    activeItem.style.transform = 'translateX(0)';
-                    handleOpen(tableId);
-                }
-            } else {
-                activeItem.style.transform = 'translateX(0)';
-            }
-
-            activeItem.classList.remove('swipe-delete');
-            activeItem.classList.remove('swipe-open');
-
-            setTimeout(() => {
-                if (activeItem) {
-                    activeItem.style.transition = '';
-                }
-            }, 300);
-
-            isSwiping = false;
-            activeItem = null;
-        }
-
-        function handleListMouseLeave(e) {
-            if (!isSwiping || !activeItem) return;
-
-            activeItem.style.transition = 'transform 0.3s, background-color 0.3s';
-            activeItem.style.transform = 'translateX(0)';
-            activeItem.classList.remove('swipe-delete');
-            activeItem.classList.remove('swipe-open');
-
-            setTimeout(() => {
-                if (activeItem) {
-                    activeItem.style.transition = '';
-                }
-            }, 300);
-
-            isSwiping = false;
-            activeItem = null;
-        }
-
-        function handleListTouchStart(e) {
-            const item = e.target.closest('.table-item');
-            if (!item) return;
-
-            touchStartX = e.touches[0].clientX;
-            touchCurrentX = e.touches[0].clientX;
-            isSwiping = true;
-            activeItem = item;
-            item.classList.add('swiping');
-        }
-
-        function handleListTouchMove(e) {
-            if (!isSwiping || !activeItem) return;
-
-            touchCurrentX = e.touches[0].clientX;
-            const diffX = touchCurrentX - touchStartX;
-
-            if (Math.abs(diffX) < 80) {
-                activeItem.style.transform = `translateX(${diffX}px)`;
-
-                if (diffX > 30) {
-                    activeItem.classList.add('swipe-delete');
-                    activeItem.classList.remove('swipe-open');
-                } else if (diffX < -30) {
-                    activeItem.classList.add('swipe-open');
-                    activeItem.classList.remove('swipe-delete');
-                } else {
-                    activeItem.classList.remove('swipe-delete');
-                    activeItem.classList.remove('swipe-open');
-                }
-            }
-        }
-
-        function handleListTouchEnd(e) {
-            if (!isSwiping || !activeItem) return;
-
-            const diffX = touchCurrentX - touchStartX;
-            const wrapper = activeItem.closest('.table-item-wrapper');
-            const tableId = wrapper.dataset.id;
-
-            activeItem.style.transition = 'transform 0.3s, background-color 0.3s';
-
-            if (Math.abs(diffX) > 50) {
-                if (diffX > 50) {
-                    activeItem.style.transform = 'translateX(0)';
-                    handleDelete(tableId);
-                } else if (diffX < -50) {
-                    activeItem.style.transform = 'translateX(0)';
-                    handleOpen(tableId);
-                }
-            } else {
-                activeItem.style.transform = 'translateX(0)';
-            }
-
-            activeItem.classList.remove('swipe-delete');
-            activeItem.classList.remove('swipe-open');
-
-            setTimeout(() => {
-                if (activeItem) {
-                    activeItem.style.transition = '';
-                }
-            }, 300);
-
-            isSwiping = false;
-            activeItem = null;
-        }
-
-        function handleListTouchCancel(e) {
-            if (!isSwiping || !activeItem) return;
-
-            activeItem.style.transition = 'transform 0.3s, background-color 0.3s';
-            activeItem.style.transform = 'translateX(0)';
-            activeItem.classList.remove('swipe-delete');
-            activeItem.classList.remove('swipe-open');
-
-            setTimeout(() => {
-                if (activeItem) {
-                    activeItem.style.transition = '';
-                }
-            }, 300);
-
-            isSwiping = false;
-            activeItem = null;
-        }
-
-        async function handleDelete(tableId) {
+        async function handleDelete(tableId, event) {
+            event.stopPropagation();
             const tables = await getAllTables();
             const table = tables.find(t => t.id === tableId);
             if (table && confirm(`确定要删除表格"${table.name}"吗？`)) {
@@ -644,14 +469,15 @@
         }
 
         container.querySelectorAll('.table-item').forEach(item => {
-            item.addEventListener('mousedown', handleListMouseDown);
-            item.addEventListener('mousemove', handleListMouseMove);
-            item.addEventListener('mouseup', handleListMouseUp);
-            item.addEventListener('mouseleave', handleListMouseLeave);
-            item.addEventListener('touchstart', handleListTouchStart, { passive: true });
-            item.addEventListener('touchmove', handleListTouchMove, { passive: false });
-            item.addEventListener('touchend', handleListTouchEnd);
-            item.addEventListener('touchcancel', handleListTouchCancel);
+            const wrapper = item.closest('.table-item-wrapper');
+            const tableId = wrapper.dataset.id;
+            const deleteBtn = item.querySelector('.table-item-delete');
+
+            item.addEventListener('click', () => handleOpen(tableId));
+
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', (e) => handleDelete(tableId, e));
+            }
         });
     }
 
