@@ -723,12 +723,35 @@
         document.querySelectorAll('#dataTable th.sortable').forEach(th => {
             th.addEventListener('click', () => {
                 const field = th.dataset.field;
-                if (sortField === field) {
-                    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-                } else {
+                if (field === 'index') {
                     sortField = field;
                     sortDirection = 'asc';
+                } else {
+                    if (sortField === field) {
+                        sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        sortField = field;
+                        sortDirection = 'asc';
+                    }
                 }
+                
+                if (isDateViewMode) {
+                    isDateViewMode = false;
+                    const btn = document.getElementById('toggleViewBtn');
+                    if (btn) {
+                        btn.textContent = '切换';
+                    }
+                    
+                    const toggleFields = document.querySelectorAll('.toggle-field');
+                    const dateFields = document.querySelectorAll('.date-field');
+                    if (toggleFields.length) {
+                        toggleFields.forEach(field => field.style.display = '');
+                    }
+                    if (dateFields.length) {
+                        dateFields.forEach(field => field.style.display = 'none');
+                    }
+                }
+                
                 refreshCurrentTable();
             });
         });
