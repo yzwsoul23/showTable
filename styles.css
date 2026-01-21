@@ -494,8 +494,8 @@ body {
 }
 
 .table-item-status.pending {
-    background: var(--yellow);
-    border-color: var(--yellow);
+    background: var(--red);
+    border-color: var(--red);
 }
 
 .table-item-delete {

@@ -438,6 +438,7 @@
                             <div class="table-item-name">${escapeHtml(table.name)}</div>
                             <div class="table-item-date">${date}</div>
                         </div>
+                        <div class="table-item-status ${isCompleted ? 'completed' : 'pending'}" title="${isCompleted ? '已完成标记' : '未完成标记'}"></div>
                         <button class="table-item-delete" title="删除">❌</button>
                     </div>
                 </div>
@@ -483,7 +484,7 @@
 
     function checkTableCompleted(table) {
         if (!table.data || !table.data.rows) return false;
-        return table.data.rows.every(row => row.status === STATUS.GREEN);
+        return table.data.rows.every(row => row.actualQuantity !== null && row.actualQuantity !== undefined);
     }
 
     function renderTable(table) {
