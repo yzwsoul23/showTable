@@ -492,6 +492,7 @@
             document.getElementById('tableBody').innerHTML = `
                 <tr><td colspan="6" style="text-align: center; padding: 40px; color: #999;">暂无数据</td></tr>
             `;
+            document.getElementById('tableRowCount').textContent = '共 0 条数据';
             return;
         }
 
@@ -509,6 +510,8 @@
                 <td data-field="productionDate" class="text-center date-field" style="display:none;">${formatDate(row.productionDate)}</td>
             </tr>
         `).join('');
+
+        document.getElementById('tableRowCount').textContent = `共 ${rows.length} 条数据`;
 
         setupTableInteractions(table);
         setupSortableHeaders();
@@ -940,6 +943,7 @@
             document.getElementById('tableBody').innerHTML = `
                 <tr><td colspan="6" style="text-align: center; padding: 40px; color: #999;">暂无数据</td></tr>
             `;
+            document.getElementById('tableRowCount').textContent = '共 0 条数据';
             return;
         }
 
@@ -961,6 +965,8 @@
                 <td data-field="productionDate" class="text-center date-field" style="display:none;">${formatDate(row.productionDate)}</td>
             </tr>
         `).join('');
+
+        document.getElementById('tableRowCount').textContent = `共 ${rows.length} 条数据`;
 
         setupTableInteractions(table);
         setupSortableHeaders();
