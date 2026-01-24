@@ -428,17 +428,23 @@
         tables.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
 
         container.innerHTML = tables.map(table => {
-            const isCompleted = checkTableCompleted(table);
+            const status = checkTableCompleted(table);
             const date = new Date(table.updatedAt).toLocaleDateString('zh-CN');
+            
+            const statusText = {
+                'completed': '已完成标记（全部有货）',
+                'partial': '已完成标记（存在非有货）',
+                'pending': '未完成标记'
+            }[status];
 
             return `
                 <div class="table-item-wrapper" data-id="${table.id}">
-                    <div class="table-item ${isCompleted ? 'completed' : ''}">
+                    <div class="table-item ${status === 'completed' ? 'completed' : ''}">
                         <div class="table-item-info">
                             <div class="table-item-name">${escapeHtml(table.name)}</div>
                             <div class="table-item-date">${date}</div>
                         </div>
-                        <div class="table-item-status ${isCompleted ? 'completed' : 'pending'}" title="${isCompleted ? '已完成标记' : '未完成标记'}"></div>
+                        <div class="table-item-status ${status}" title="${statusText}"></div>
                         <button class="table-item-delete" title="删除">❌</button>
                     </div>
                 </div>
@@ -483,8 +489,15 @@
     }
 
     function checkTableCompleted(table) {
-        if (!table.data || !table.data.rows) return false;
-        return table.data.rows.every(row => row.actualQuantity !== null && row.actualQuantity !== undefined);
+        if (!table.data || !table.data.rows) return 'pending';
+        
+        const hasUnmarked = table.data.rows.some(row => row.actualQuantity === null || row.actualQuantity === undefined);
+        if (hasUnmarked) return 'pending';
+        
+        const allGreen = table.data.rows.every(row => row.status === STATUS.GREEN);
+        if (allGreen) return 'completed';
+        
+        return 'partial';
     }
 
     function renderTable(table) {

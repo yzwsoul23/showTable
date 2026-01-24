@@ -507,6 +507,11 @@ body {
     border-color: var(--green);
 }
 
+.table-item-status.partial {
+    background: var(--yellow);
+    border-color: var(--yellow);
+}
+
 .table-item-status.pending {
     background: var(--red);
     border-color: var(--red);
