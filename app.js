@@ -602,6 +602,8 @@
 
     async function setupTableInteractions(table) {
         const tbody = document.getElementById('tableBody');
+        const tableStatus = checkTableCompleted(table);
+        const isAllMarked = tableStatus !== 'pending';
 
         let touchStartX = 0;
         let touchCurrentX = 0;
@@ -798,15 +800,18 @@
         }
 
         tbody.querySelectorAll('tr').forEach(row => {
-            row.addEventListener('mousedown', handleRowMouseDown);
-            row.addEventListener('mousemove', handleRowMouseMove);
-            row.addEventListener('mouseup', handleRowMouseUp);
-            row.addEventListener('mouseleave', handleRowMouseLeave);
-            row.addEventListener('touchstart', handleRowTouchStart, { passive: true });
-            row.addEventListener('touchmove', handleRowTouchMove, { passive: false });
-            row.addEventListener('touchend', handleRowTouchEnd);
-            row.addEventListener('touchcancel', handleRowTouchCancel);
             row.addEventListener('dblclick', handleRowDblClick);
+            
+            if (!isAllMarked) {
+                row.addEventListener('mousedown', handleRowMouseDown);
+                row.addEventListener('mousemove', handleRowMouseMove);
+                row.addEventListener('mouseup', handleRowMouseUp);
+                row.addEventListener('mouseleave', handleRowMouseLeave);
+                row.addEventListener('touchstart', handleRowTouchStart, { passive: true });
+                row.addEventListener('touchmove', handleRowTouchMove, { passive: false });
+                row.addEventListener('touchend', handleRowTouchEnd);
+                row.addEventListener('touchcancel', handleRowTouchCancel);
+            }
         });
     }
 
@@ -904,7 +909,7 @@
 
         renderTable(table);
 
-        if (checkTableCompleted(table)) {
+        if (checkTableCompleted(table) === 'completed') {
             showToast('当前表格已完成');
         }
     }
