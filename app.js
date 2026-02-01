@@ -436,13 +436,19 @@
                 'partial': '已完成标记（存在非有货）',
                 'pending': '未完成标记'
             }[status];
+            
+            const rowCount = table.data?.rows?.length || 0;
+            const totalQuantity = table.data?.rows?.reduce((sum, row) => sum + (row.quantity || 0), 0) || 0;
 
             return `
                 <div class="table-item-wrapper" data-id="${table.id}">
                     <div class="table-item ${status === 'completed' ? 'completed' : ''}">
                         <div class="table-item-info">
                             <div class="table-item-name">${escapeHtml(table.name)}</div>
-                            <div class="table-item-date">${date}</div>
+                            <div class="table-item-meta">
+                                <span class="table-item-date">${date}</span>
+                                <span class="table-item-stats">${rowCount}条数据 · 总计${totalQuantity}</span>
+                            </div>
                         </div>
                         <div class="table-item-status ${status}" title="${statusText}"></div>
                         <button class="table-item-delete" title="删除">❌</button>
@@ -515,7 +521,7 @@
         tbody.innerHTML = rows.map(row => `
             <tr class="table-row ${row.status}" data-id="${row.id}" data-quantity="${row.quantity}" data-product="${escapeHtml(row.productName)}" data-price="${row.price.toFixed(1)}" data-date="${row.productionDate || ''}">
                 <td data-field="index" class="text-right">${row.index}</td>
-                <td data-field="productName" class="text-left">${escapeHtml(row.productName)}</td>
+                <td data-field="productName" class="text-left ${row.productionDate ? 'has-date' : ''}">${escapeHtml(row.productName)}</td>
                 <td data-field="barcode" class="text-center toggle-field">${row.barcode}</td>
                 <td data-field="quantity" class="text-right">${row.quantity}</td>
                 <td data-field="price" class="text-center toggle-field">${row.price.toFixed(1)}</td>
@@ -525,6 +531,9 @@
         `).join('');
 
         document.getElementById('tableRowCount').textContent = `共 ${rows.length} 条数据`;
+        
+        const totalQuantity = rows.reduce((sum, row) => sum + (row.quantity || 0), 0);
+        document.getElementById('tableQuantityTotal').textContent = `总计：${totalQuantity}`;
 
         setupTableInteractions(table);
         setupSortableHeaders();
@@ -975,7 +984,7 @@
         tbody.innerHTML = rows.map(row => `
             <tr class="table-row ${row.status}" data-id="${row.id}" data-quantity="${row.quantity}" data-product="${escapeHtml(row.productName)}" data-price="${row.price.toFixed(1)}" data-date="${row.productionDate || ''}">
                 <td data-field="index" class="text-right">${row.index}</td>
-                <td data-field="productName" class="text-left">${escapeHtml(row.productName)}</td>
+                <td data-field="productName" class="text-left ${row.productionDate ? 'has-date' : ''}">${escapeHtml(row.productName)}</td>
                 <td data-field="barcode" class="text-center toggle-field">${row.barcode}</td>
                 <td data-field="quantity" class="text-right">${row.quantity}</td>
                 <td data-field="price" class="text-center toggle-field">${row.price.toFixed(1)}</td>
@@ -985,6 +994,9 @@
         `).join('');
 
         document.getElementById('tableRowCount').textContent = `共 ${rows.length} 条数据`;
+        
+        const totalQuantity = rows.reduce((sum, row) => sum + (row.quantity || 0), 0);
+        document.getElementById('tableQuantityTotal').textContent = `总计：${totalQuantity}`;
 
         setupTableInteractions(table);
         setupSortableHeaders();

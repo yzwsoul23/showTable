@@ -135,15 +135,25 @@ body {
 }
 
 .table-summary {
-    padding: 8px 8px;
+    padding: 12px 16px;
     background: #f8f9fa;
     border-top: 1px solid var(--border-color);
-    text-align: right;
     font-size: 0.85rem;
     color: #666;
 }
 
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
 .table-summary #tableRowCount {
+    font-weight: 500;
+    color: #333;
+}
+
+.table-summary #tableQuantityTotal {
     font-weight: 500;
     color: #333;
 }
@@ -276,6 +286,10 @@ body {
 
 #dataTable td[data-field="quantity"] {
     font-weight: 600;
+}
+
+#dataTable td[data-field="productName"].has-date {
+    color: #999;
 }
 
 #dataTable td[data-field="actualQuantity"] {
@@ -495,6 +509,19 @@ body {
     color: #999;
 }
 
+.table-item-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.table-item-stats {
+    font-size: 0.8rem;
+    color: #999;
+    font-weight: 500;
+}
+
 .table-item-status {
     width: 16px;
     height: 16px;
@@ -510,6 +537,7 @@ body {
 .table-item-status.partial {
     background: var(--yellow);
     border-color: var(--yellow);
+    margin: 20px;
 }
 
 .table-item-status.pending {
