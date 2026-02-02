@@ -9,6 +9,7 @@
     let currentTableId = null;
     let sortField = null;
     let sortDirection = 'asc';
+    let filterStatus = 'all';
     let touchStartX = 0;
     let touchStartY = 0;
     let editingRowData = null;
@@ -392,6 +393,7 @@
 
         sortField = null;
         sortDirection = 'asc';
+        filterStatus = 'all';
         
         isDateViewMode = false;
         const btn = document.getElementById('toggleViewBtn');
@@ -408,6 +410,7 @@
             dateFields.forEach(field => field.style.display = 'none');
         }
 
+        setupLegendFilter();
         renderTable(table);
     }
 
@@ -494,6 +497,25 @@
         });
     }
 
+    function updateLegendActiveState() {
+        document.querySelectorAll('.legend-item').forEach(item => {
+            item.classList.remove('active');
+            if (item.dataset.status === filterStatus) {
+                item.classList.add('active');
+            }
+        });
+    }
+
+    function setupLegendFilter() {
+        document.querySelectorAll('.legend-item').forEach(item => {
+            item.addEventListener('click', () => {
+                filterStatus = item.dataset.status;
+                updateLegendActiveState();
+                refreshCurrentTable();
+            });
+        });
+    }
+
     function checkTableCompleted(table) {
         if (!table.data || !table.data.rows) return 'pending';
         
@@ -515,7 +537,11 @@
             return;
         }
 
-        const rows = [...table.data.rows];
+        let rows = [...table.data.rows];
+        
+        if (filterStatus !== 'all') {
+            rows = rows.filter(row => row.status === filterStatus);
+        }
 
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = rows.map(row => `
@@ -534,6 +560,20 @@
         
         const totalQuantity = rows.reduce((sum, row) => sum + (row.quantity || 0), 0);
         document.getElementById('tableQuantityTotal').textContent = `总计：${totalQuantity}`;
+        
+        const allRows = table.data.rows;
+        const statusCounts = allRows.reduce((counts, row) => {
+            counts[row.status] = (counts[row.status] || 0) + 1;
+            return counts;
+        }, { green: 0, red: 0, yellow: 0, white: 0 });
+        
+        document.getElementById('legendAll').textContent = allRows.length;
+        document.getElementById('legendGreen').textContent = statusCounts.green;
+        document.getElementById('legendRed').textContent = statusCounts.red;
+        document.getElementById('legendYellow').textContent = statusCounts.yellow;
+        document.getElementById('legendWhite').textContent = statusCounts.white;
+        
+        updateLegendActiveState();
 
         setupTableInteractions(table);
         setupSortableHeaders();
@@ -974,10 +1014,14 @@
             return;
         }
 
-        const rows = [...table.data.rows];
+        let rows = [...table.data.rows];
 
         if (sortField) {
             rows.sort((a, b) => sortRows(a, b));
+        }
+        
+        if (filterStatus !== 'all') {
+            rows = rows.filter(row => row.status === filterStatus);
         }
 
         const tbody = document.getElementById('tableBody');
@@ -997,6 +1041,20 @@
         
         const totalQuantity = rows.reduce((sum, row) => sum + (row.quantity || 0), 0);
         document.getElementById('tableQuantityTotal').textContent = `总计：${totalQuantity}`;
+        
+        const allRows = table.data.rows;
+        const statusCounts = allRows.reduce((counts, row) => {
+            counts[row.status] = (counts[row.status] || 0) + 1;
+            return counts;
+        }, { green: 0, red: 0, yellow: 0, white: 0 });
+        
+        document.getElementById('legendAll').textContent = allRows.length;
+        document.getElementById('legendGreen').textContent = statusCounts.green;
+        document.getElementById('legendRed').textContent = statusCounts.red;
+        document.getElementById('legendYellow').textContent = statusCounts.yellow;
+        document.getElementById('legendWhite').textContent = statusCounts.white;
+        
+        updateLegendActiveState();
 
         setupTableInteractions(table);
         setupSortableHeaders();

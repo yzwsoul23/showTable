@@ -313,6 +313,34 @@ body {
     align-items: center;
     font-size: 0.8rem;
     color: #666;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+.legend-item:hover {
+    background: #e9ecef;
+}
+
+.legend-item.active {
+    background: #667eea;
+    color: white;
+}
+
+.legend-item.active .legend-count {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.legend-count {
+    margin-left: 4px;
+    font-weight: 600;
+    color: #333;
+    background: #f0f0f0;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.75rem;
 }
 
 .color-box {
@@ -337,6 +365,10 @@ body {
 
 .color-box.white {
     background: var(--white);
+}
+
+.color-box.all {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .modal {
@@ -527,6 +559,7 @@ body {
     height: 16px;
     border-radius: 50%;
     border: 2px solid #ddd;
+    margin: 20px;
 }
 
 .table-item-status.completed {
@@ -537,7 +570,6 @@ body {
 .table-item-status.partial {
     background: var(--yellow);
     border-color: var(--yellow);
-    margin: 20px;
 }
 
 .table-item-status.pending {
